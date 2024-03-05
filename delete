@@ -1,0 +1,70 @@
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+@Service
+public class JsonPlaceHolderService {
+
+    private static final String BASE_URL = "https://jsonplaceholder.typicode.com";
+
+    private final RestTemplate restTemplate;
+
+    @Autowired
+    public JsonPlaceHolderService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    public ResponseEntity<String> findById(Long id) {
+        String url = BASE_URL + "/posts/" + id;
+        return restTemplate.getForEntity(url, String.class);
+    }
+
+    public ResponseEntity<String> createPost(String postJson) {
+        String url = BASE_URL + "/posts";
+        return restTemplate.postForEntity(url, postJson, String.class);
+    }
+
+    public void deletePost(Long id) {
+        String url = BASE_URL + "/posts/" + id;
+        restTemplate.delete(url);
+    }
+
+    public void updatePost(Long id, String updatedPostJson) {
+        String url = BASE_URL + "/posts/" + id;
+        restTemplate.put(url, updatedPostJson);
+    }
+}
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+
+@Configuration
+public class ApplicationConfig {
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+}
+
+@RestController
+@RequestMapping("/api")
+public class ApiController {
+
+    private final JsonPlaceHolderService jsonPlaceHolderService;
+
+    @Autowired
+    public ApiController(JsonPlaceHolderService jsonPlaceHolderService) {
+        this.jsonPlaceHolderService = jsonPlaceHolderService;
+    }
+
+    @GetMapping("/post/{id}")
+    public ResponseEntity<String> getPostById(@PathVariable Long id) {
+        return jsonPlaceHolderService.findById(id);
+    }
+
+    
+}
+
